@@ -12,7 +12,7 @@ type GoError struct {
 	Cause  string
 }
 
-func (e GoError) Error() string {
+func (e *GoError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Code, e.Msg)
 }
 
@@ -22,7 +22,14 @@ func (e *GoError) WithCause(cause error) *GoError {
 	return e
 }
 
-// 4xx
+func (e *GoError) IsCodeEqual(err error) bool {
+	if ge, ok := err.(*GoError); ok {
+		return ge.Code == e.Code
+	}
+
+	return false
+}
+
 func DefineBadRequest(code, msg string) *GoError {
 	return &GoError{
 		Status: http.StatusBadRequest,
@@ -55,7 +62,6 @@ func DefineNotFound(code, msg string) *GoError {
 	}
 }
 
-// 5xx
 func DefineInternalServerError(code, msg string) *GoError {
 	return &GoError{
 		Status: http.StatusInternalServerError,
