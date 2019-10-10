@@ -10,16 +10,12 @@ type GoError struct {
 	Code   string
 	Msg    string
 	Cause  string
+
+	frames []*frame
 }
 
 func (e *GoError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Code, e.Msg)
-}
-
-func (e *GoError) WithCause(cause error) *GoError {
-	e.Cause = cause.Error()
-
-	return e
 }
 
 func (e *GoError) IsCodeEqual(err error) bool {
@@ -28,6 +24,13 @@ func (e *GoError) IsCodeEqual(err error) bool {
 	}
 
 	return false
+}
+
+func (e *GoError) WithCause(cause error) *GoError {
+	e.Cause = cause.Error()
+	e.frames = trace(DefaultStackTraceSkipLine)
+
+	return e
 }
 
 func DefineBadRequest(code, msg string) *GoError {
