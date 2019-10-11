@@ -2,7 +2,6 @@ package goerror
 
 import (
     "errors"
-    "fmt"
     "io/ioutil"
     "testing"
 
@@ -28,6 +27,27 @@ func TestGoError_WithCause(t *testing.T) {
     _, err := ioutil.ReadFile("/tmp/dat")
 
     goErr := DefineInternalServerError("TestStackTrace", "Test stacktrace").WithCause(err)
-    fmt.Println(goErr.StackTrace())
     require.Error(t, goErr)
+    require.NotEmpty(t, goErr.StackTrace())
+}
+
+func TestGoError_Input(t *testing.T) {
+    inputNil := DefineInternalServerError("TestInput", "Test input").WithInput(nil)
+    require.Equal(t, "", inputNil.PrintInput())
+
+    inputString := DefineInternalServerError("TestInput", "Test input").WithInput("i am string")
+    require.Equal(t, "i am string", inputString.PrintInput())
+
+    inputStrings := DefineInternalServerError("TestInput", "Test input").WithInput([]string{"one", "two", "three"})
+    require.Equal(t, "[one two three]", inputStrings.PrintInput())
+
+    inputMap := DefineInternalServerError("TestInput", "Test input").WithInput(
+        struct {
+            UserID string `json:"userID"`
+            Name   string `json:"name"`
+        }{
+            UserID: "user_1",
+            Name:   "tester",
+        })
+    require.Equal(t, "{user_1 tester}", inputMap.PrintInput())
 }
