@@ -1,54 +1,54 @@
 package goerror
 
 import (
-	"fmt"
-	"runtime"
+    "fmt"
+    "runtime"
 )
 
 var (
-	DefaultStackTraceCap      = 15
-	DefaultStackTraceSkipLine = 2
+    DefaultStackTraceCap      = 15
+    DefaultStackTraceSkipLine = 2
 )
 
 type frame struct {
-	funcName string
-	line     int
-	path     string
+    funcName string
+    line     int
+    path     string
 }
 
 func (e *GoError) StackTrace() string {
-	stackTrance := ""
+    stackTrance := ""
 
-	for _, frame := range e.frames {
-		stackTrance += fmt.Sprintf("%s: %s %d \n", frame.funcName, frame.path, frame.line)
-	}
+    for _, frame := range e.frames {
+        stackTrance += fmt.Sprintf("%s: %s %d \n", frame.funcName, frame.path, frame.line)
+    }
 
-	return stackTrance
+    return stackTrance
 }
 
 func trace(skip int) []*frame {
-	frames := make([]*frame, 0)
+    frames := make([]*frame, 0)
 
-	i := 0
-	for {
-		if i >= DefaultStackTraceCap {
-			break
-		}
+    i := 0
+    for {
+        if i >= DefaultStackTraceCap {
+            break
+        }
 
-		pc, path, line, ok := runtime.Caller(skip)
-		if !ok {
-			break
-		}
+        pc, path, line, ok := runtime.Caller(skip)
+        if !ok {
+            break
+        }
 
-		frames = append(frames, &frame{
-			funcName: runtime.FuncForPC(pc).Name(),
-			line:     line,
-			path:     path,
-		})
+        frames = append(frames, &frame{
+            funcName: runtime.FuncForPC(pc).Name(),
+            line:     line,
+            path:     path,
+        })
 
-		skip++
-		i++
-	}
+        skip++
+        i++
+    }
 
-	return frames
+    return frames
 }
