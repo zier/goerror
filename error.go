@@ -1,63 +1,63 @@
 package goerror
 
 import (
-	"fmt"
+    "fmt"
 )
 
 type Error interface {
-	Error() string
-	PrintInput() string
-	IsCodeEqual(err error) bool
-	WithCause(cause error) Error
-	WithInput(input interface{}) Error
-	ExtendMsg(msg string) Error
+    Error() string
+    PrintInput() string
+    IsCodeEqual(err error) bool
+    WithCause(cause error) Error
+    WithInput(input interface{}) Error
+    ExtendMsg(msg string) Error
 }
 
 type GoError struct {
-	Status int
-	Code   string
-	Msg    string
-	Cause  string
+    Status int
+    Code   string
+    Msg    string
+    Cause  string
 
-	input  interface{}
-	frames []*frame
+    input  interface{}
+    frames []*frame
 }
 
 func (e *GoError) Error() string {
-	return fmt.Sprintf("%s: %s", e.Code, e.Msg)
+    return fmt.Sprintf("%s: %s", e.Code, e.Msg)
 }
 
 func (e *GoError) PrintInput() string {
-	if e.input == nil {
-		return ""
-	}
+    if e.input == nil {
+        return ""
+    }
 
-	return fmt.Sprintf("%v", e.input)
+    return fmt.Sprintf("%v", e.input)
 }
 
 func (e *GoError) IsCodeEqual(err error) bool {
-	if ge, ok := err.(*GoError); ok {
-		return ge.Code == e.Code
-	}
+    if ge, ok := err.(*GoError); ok {
+        return ge.Code == e.Code
+    }
 
-	return false
+    return false
 }
 
 func (e *GoError) WithCause(cause error) Error {
-	e.Cause = cause.Error()
-	e.frames = trace(DefaultStackTraceSkipLine)
+    e.Cause = cause.Error()
+    e.frames = trace(DefaultStackTraceSkipLine)
 
-	return e
+    return e
 }
 
 func (e *GoError) WithInput(input interface{}) Error {
-	e.input = input
+    e.input = input
 
-	return e
+    return e
 }
 
 func (e *GoError) ExtendMsg(msg string) Error {
-	e.Msg = e.Msg + msg
+    e.Msg = e.Msg + msg
 
-	return e
+    return e
 }
