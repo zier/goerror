@@ -10,6 +10,7 @@ type Error interface {
 	IsCodeEqual(err error) bool
 	WithCause(cause error) Error
 	WithInput(input interface{}) Error
+	ExtendMsg(msg string) Error
 }
 
 type GoError struct {
@@ -51,6 +52,12 @@ func (e *GoError) WithCause(cause error) Error {
 
 func (e *GoError) WithInput(input interface{}) Error {
 	e.input = input
+
+	return e
+}
+
+func (e *GoError) ExtendMsg(msg string) Error {
+	e.Msg = e.Msg + msg
 
 	return e
 }
