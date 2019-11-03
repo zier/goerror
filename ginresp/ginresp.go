@@ -18,7 +18,7 @@ func RespWithError(c *gin.Context, err error) {
     if e, ok := err.(*goerror.GoError); ok {
         c.JSON(e.Status, gin.H{
             "type":    e.Code,
-            "message": e.Msg,
+            "message": e.Msg + e.ExtendMsg,
         })
 
         return

@@ -10,14 +10,15 @@ type Error interface {
     IsCodeEqual(err error) bool
     WithCause(cause error) Error
     WithInput(input interface{}) Error
-    ExtendMsg(msg string) Error
+    WithExtendMsg(msg string) Error
 }
 
 type GoError struct {
-    Status int
-    Code   string
-    Msg    string
-    Cause  string
+    Status    int
+    Code      string
+    Msg       string
+    ExtendMsg string
+    Cause     string
 
     input  interface{}
     frames []*frame
@@ -56,8 +57,8 @@ func (e *GoError) WithInput(input interface{}) Error {
     return e
 }
 
-func (e *GoError) ExtendMsg(msg string) Error {
-    e.Msg = e.Msg + msg
+func (e *GoError) WithExtendMsg(extendMsg string) Error {
+    e.ExtendMsg = extendMsg
 
     return e
 }
