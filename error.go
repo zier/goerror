@@ -12,6 +12,7 @@ type Error interface {
 	WithInput(input interface{}) Error
 	WithExtendMsg(msg string) Error
 	StackTrace() string
+	Cause() string
 }
 
 type GoError struct {
@@ -19,7 +20,7 @@ type GoError struct {
 	Code      string
 	Msg       string
 	ExtendMsg string
-	Cause     string
+	cause     string
 
 	input  interface{}
 	frames []*frame
@@ -37,6 +38,10 @@ func (e *GoError) PrintInput() string {
 	return fmt.Sprintf("%v", e.input)
 }
 
+func (e *GoError) Cause() string {
+	return e.cause
+}
+
 func (e *GoError) IsCodeEqual(err error) bool {
 	if ge, ok := err.(*GoError); ok {
 		return ge.Code == e.Code
@@ -46,7 +51,7 @@ func (e *GoError) IsCodeEqual(err error) bool {
 }
 
 func (e *GoError) WithCause(cause error) Error {
-	e.Cause = cause.Error()
+	e.cause = cause.Error()
 	e.frames = trace(DefaultStackTraceSkipLine)
 
 	return e
