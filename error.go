@@ -6,6 +6,7 @@ import (
 
 type Error interface {
 	Error() string
+	ErrorWithCause() string
 	PrintInput() string
 	IsCodeEqual(err error) bool
 	WithCause(cause error) Error
@@ -40,6 +41,10 @@ func (e *GoError) PrintInput() string {
 
 func (e *GoError) Cause() string {
 	return e.cause
+}
+
+func (e *GoError) ErrorWithCause() string {
+	return fmt.Sprintf("%s - %s", e.Error(), e.Cause())
 }
 
 func (e *GoError) IsCodeEqual(err error) bool {
