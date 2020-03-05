@@ -28,6 +28,10 @@ type GoError struct {
 }
 
 func (e *GoError) Error() string {
+	if e.cause != "" {
+		return fmt.Sprintf("%s: %s - %s", e.Code, e.Msg, e.cause)
+	}
+
 	return fmt.Sprintf("%s: %s", e.Code, e.Msg)
 }
 
