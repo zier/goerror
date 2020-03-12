@@ -7,13 +7,19 @@ import (
 type Error interface {
 	Error() string
 	ErrorWithCause() string
+
 	PrintInput() string
+	StackTrace() string
+	Cause() string
+
 	IsCodeEqual(err error) bool
+
+	GetReasons() []*Reason
+	AddReason(fieldName, reason string, value interface{})
+
 	WithCause(cause error) Error
 	WithInput(input interface{}) Error
 	WithExtendMsg(msg string) Error
-	StackTrace() string
-	Cause() string
 }
 
 type GoError struct {
@@ -22,6 +28,8 @@ type GoError struct {
 	Msg       string
 	ExtendMsg string
 	cause     string
+
+	reasons []*Reason
 
 	input  interface{}
 	frames []*frame
