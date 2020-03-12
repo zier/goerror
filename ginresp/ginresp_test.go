@@ -18,6 +18,23 @@ import (
 	"github.com/devit-tel/goerror"
 )
 
+func setupGin() *gin.Engine {
+	gin.SetMode("test")
+	router := gin.New()
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterTagNameFunc(func(fld reflect.StructField) string {
+			name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+			if name == "-" {
+				return ""
+			}
+			return name
+		})
+	}
+
+	return router
+}
+
 func cleanResponse(responseBytes []byte) string {
 	return strings.Replace(string(responseBytes), "\n", "", -1)
 }
@@ -26,8 +43,7 @@ func TestRespWithError_WithAftError(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/user", nil)
 	res := httptest.NewRecorder()
 
-	gin.SetMode("test")
-	router := gin.New()
+	router := setupGin()
 	router.GET("/user", func(c *gin.Context) {
 		RespWithError(c, goerror.DefineBadRequest("InvalidRequest", "Username is required"))
 	})
@@ -35,15 +51,14 @@ func TestRespWithError_WithAftError(t *testing.T) {
 	router.ServeHTTP(res, req)
 
 	require.Equal(t, http.StatusBadRequest, res.Code)
-	require.Equal(t, `{"message":"Username is required","type":"InvalidRequest"}`, cleanResponse(res.Body.Bytes()))
+	require.Equal(t, `{"errors":[],"message":"Username is required","type":"InvalidRequest"}`, cleanResponse(res.Body.Bytes()))
 }
 
 func TestRespWithError_WithDefaultError(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/user", nil)
 	res := httptest.NewRecorder()
 
-	gin.SetMode("test")
-	router := gin.New()
+	router := setupGin()
 	router.GET("/user", func(c *gin.Context) {
 		RespWithError(c, errors.New("default error"))
 	})
@@ -86,23 +101,32 @@ func TestRespValidateError(t *testing.T) {
 	req := newRequestWithBody(t, reqData)
 	res := httptest.NewRecorder()
 
-	gin.SetMode("test")
-	router := gin.New()
-	
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterTagNameFunc(func(fld reflect.StructField) string {
-			name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
-			if name == "-" {
-				return ""
-			}
-			return name
-		})
-	}
-
+	router := setupGin()
 	router.POST("/user", func(c *gin.Context) {
 		if err := c.ShouldBindJSON(&emptyStruct); err != nil {
 			RespValidateError(c, err)
 		}
+	})
+
+	router.ServeHTTP(res, req)
+
+	require.Equal(t, http.StatusBadRequest, res.Code)
+	require.Equal(t, expectErrorJson, cleanResponse(res.Body.Bytes()))
+}
+
+func TestRespWithErrorReasons(t *testing.T) {
+	expectErrorJson := `{"errors":[{"fieldName":"username","reason":"username already exist","value":null},{"fieldName":"phone","reason":"phone number already exist","value":"0598881111"}],"message":"user is already exist","type":"UserExist"}`
+
+	req := newRequestWithBody(t, nil)
+	res := httptest.NewRecorder()
+
+	router := setupGin()
+	router.POST("/user", func(c *gin.Context) {
+		e := goerror.DefineBadRequest("UserExist", "user is already exist")
+		e.AddReason("username", "username already exist", nil)
+		e.AddReason("phone", "phone number already exist", "0598881111")
+
+		RespWithError(c, e)
 	})
 
 	router.ServeHTTP(res, req)
