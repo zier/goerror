@@ -6,11 +6,14 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/go-playground/validator.v9"
 
 	"github.com/devit-tel/goerror"
 )
@@ -62,7 +65,7 @@ func newRequestWithBody(t *testing.T, jsonData interface{}) *http.Request {
 }
 
 func TestRespValidateError(t *testing.T) {
-	expectErrorJson := `{"errors":[{"fieldName":"Age","reason":"lte","value":"130"}],"message":"invalid request","type":"InvalidRequest"}`
+	expectErrorJson := `{"errors":[{"fieldName":"age","reason":"lte","value":"130"}],"message":"invalid request","type":"InvalidRequest"}`
 
 	reqData := struct {
 		UserID string `json:"userID"`
@@ -75,9 +78,9 @@ func TestRespValidateError(t *testing.T) {
 	}
 
 	emptyStruct := struct {
-		UserID string `json:"userID"`
+		UserID string `json:"userId"`
 		Name   string `json:"name" binding:"required"`
-		Age    int    `json:"age" binding:"gte=0,lte=130"`
+		Age    int    `json:"age" form:"age" binding:"gte=0,lte=130"`
 	}{}
 
 	req := newRequestWithBody(t, reqData)
@@ -85,6 +88,17 @@ func TestRespValidateError(t *testing.T) {
 
 	gin.SetMode("test")
 	router := gin.New()
+	
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterTagNameFunc(func(fld reflect.StructField) string {
+			name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+			if name == "-" {
+				return ""
+			}
+			return name
+		})
+	}
+
 	router.POST("/user", func(c *gin.Context) {
 		if err := c.ShouldBindJSON(&emptyStruct); err != nil {
 			RespValidateError(c, err)
