@@ -115,7 +115,7 @@ func TestRespValidateError(t *testing.T) {
 }
 
 func TestRespWithErrorReasons(t *testing.T) {
-	expectErrorJson := `{"errors":[{"fieldName":"username","reason":"username already exist","value":null},{"fieldName":"phone","reason":"phone number already exist","value":"0598881111"}],"message":"user is already exist","type":"UserExist"}`
+	expectErrorJson := `{"errors":[{"fieldName":"username","reason":"username already exist"},{"fieldName":"phone","reason":"phone number already exist","value":"0598881111"}],"message":"user is already exist","type":"UserExist"}`
 
 	req := newRequestWithBody(t, nil)
 	res := httptest.NewRecorder()

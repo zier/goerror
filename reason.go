@@ -3,7 +3,7 @@ package goerror
 type Reason struct {
 	FieldName string      `json:"fieldName"`
 	Reason    string      `json:"reason"`
-	Value     interface{} `json:"value"`
+	Value     interface{} `json:"value,omitempty"`
 }
 
 func (e *GoError) GetReasons() []*Reason {
