@@ -12,10 +12,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/go-playground/validator.v9"
-
-	"github.com/devit-tel/goerror"
+	"github.com/zier/goerror"
 )
 
 func setupGin() *gin.Engine {
