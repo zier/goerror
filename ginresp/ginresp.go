@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gopkg.in/go-playground/validator.v9"
+	"github.com/go-playground/validator/v10"
 
-	"github.com/devit-tel/goerror"
+	"github.com/zier/goerror"
 )
 
 func RespWithError(c *gin.Context, err error) {
