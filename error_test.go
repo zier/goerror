@@ -34,13 +34,13 @@ func TestGoError_WithCause(t *testing.T) {
 
 func TestGoError_Input(t *testing.T) {
 	inputNil := DefineInternalServerError("TestInput", "Test input").WithInput(nil)
-	require.Equal(t, "", inputNil.PrintInput())
+	require.Equal(t, "{}", inputNil.PrintRawJSONInput())
 
 	inputString := DefineInternalServerError("TestInput", "Test input").WithInput("i am string")
-	require.Equal(t, "i am string", inputString.PrintInput())
+	require.Equal(t, "{\"input\":\"i am string\"}", inputString.PrintRawJSONInput())
 
 	inputStrings := DefineInternalServerError("TestInput", "Test input").WithInput([]string{"one", "two", "three"})
-	require.Equal(t, "[one two three]", inputStrings.PrintInput())
+	require.Equal(t, "{\"input\":[\"one\",\"two\",\"three\"]}", inputStrings.PrintRawJSONInput())
 
 	inputMap := DefineInternalServerError("TestInput", "Test input").WithInput(
 		struct {
@@ -50,52 +50,31 @@ func TestGoError_Input(t *testing.T) {
 			UserID: "user_1",
 			Name:   "tester",
 		})
-	require.Equal(t, "{user_1 tester}", inputMap.PrintInput())
+	require.Equal(t, "{\"input\":{\"userID\":\"user_1\",\"name\":\"tester\"}}", inputMap.PrintRawJSONInput())
 }
 
 func TestGoError_WithKeyValueInput(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		err := DefineInternalServerError("TestInput", "Test input").WithKeyValueInput("job", "knight", "level", 99, "desc", "any")
+		err := DefineInternalServerError("TestInput", "Test input").WithKeyValueInput(
+			map[string]interface{}{
+				"job":   "knight",
+				"level": 99,
+				"desc":  "any",
+			},
+		)
 
-		inputData, ok := err.Input().(map[string]interface{})
+		inputData := err.Input()
 
-		require.True(t, ok)
 		require.Equal(t, inputData["job"], "knight")
 		require.Equal(t, inputData["level"], 99)
 		require.Equal(t, inputData["desc"], "any")
 	})
 
-	t.Run("Invalid input once", func(t *testing.T) {
-		err := DefineInternalServerError("TestInput", "Test input").WithKeyValueInput("job")
-		require.Equal(t, []interface{}{"job"}, err.Input())
-
-		_, ok := err.Input().(map[string]interface{})
-		require.False(t, ok)
-	})
-
-	t.Run("Invalid input", func(t *testing.T) {
-		err := DefineInternalServerError("TestInput", "Test input").WithKeyValueInput("job", "knight", 99)
-		require.Equal(t, []interface{}{"job", "knight", 99}, err.Input())
-
-		_, ok := err.Input().(map[string]interface{})
-		require.False(t, ok)
-	})
-
 	t.Run("Nil input", func(t *testing.T) {
 		err := DefineInternalServerError("TestInput", "Test input").WithKeyValueInput(nil)
-		require.Equal(t, err.Input(), nil)
+		require.Equal(t, map[string]interface{}{}, err.Input())
 
-		_, ok := err.Input().(map[string]interface{})
-		require.False(t, ok)
-	})
-
-	t.Run("Invalid Key input", func(t *testing.T) {
-		err := DefineInternalServerError("TestInput", "Test input").WithKeyValueInput(434, "knight", nil, 99)
-
-		inputData, ok := err.Input().(map[string]interface{})
-
-		require.True(t, ok)
-		require.Equal(t, inputData["errf_0"], "knight")
-		require.Equal(t, inputData["errf_1"], 99)
+		inputData := err.Input()
+		require.Equal(t, map[string]interface{}{}, inputData)
 	})
 }
