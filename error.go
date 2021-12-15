@@ -1,6 +1,7 @@
 package goerror
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
@@ -8,7 +9,7 @@ type Error interface {
 	Error() string
 	ErrorWithCause() string
 
-	PrintInput() string
+	PrintRawJSONInput() string
 	StackTrace() string
 	Cause() string
 
@@ -17,11 +18,11 @@ type Error interface {
 	GetReasons() []*Reason
 	AddReason(fieldName, reason string, value interface{})
 
-	Input() interface{}
+	Input() map[string]interface{}
 
 	WithCause(cause error) Error
 	WithInput(input interface{}) Error
-	WithKeyValueInput(inputs ...interface{}) Error
+	WithKeyValueInput(inputs map[string]interface{}) Error
 	WithExtendMsg(msg string) Error
 }
 
@@ -34,7 +35,7 @@ type GoError struct {
 
 	reasons []*Reason
 
-	input  interface{}
+	input  map[string]interface{}
 	frames []*frame
 }
 
@@ -46,15 +47,16 @@ func (e *GoError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Code, e.Msg)
 }
 
-func (e *GoError) PrintInput() string {
+func (e *GoError) PrintRawJSONInput() string {
 	if e.input == nil {
 		return ""
 	}
 
-	return fmt.Sprintf("%v", e.input)
+	inputData, _ := json.Marshal(e.input)
+	return string(inputData)
 }
 
-func (e *GoError) Input() interface{} {
+func (e *GoError) Input() map[string]interface{} {
 	return e.input
 }
 
@@ -82,7 +84,13 @@ func (e *GoError) WithCause(cause error) Error {
 }
 
 func (e *GoError) WithInput(input interface{}) Error {
-	e.input = input
+	if input == nil {
+		e.input = map[string]interface{}{}
+	} else {
+		e.input = map[string]interface{}{
+			"input": input,
+		}
+	}
 
 	return e
 }
@@ -93,27 +101,12 @@ func (e *GoError) WithExtendMsg(extendMsg string) Error {
 	return e
 }
 
-func (e *GoError) WithKeyValueInput(keyValues ...interface{}) Error {
-	if len(keyValues) == 1 && keyValues[0] == nil {
-		return e
+func (e *GoError) WithKeyValueInput(inputs map[string]interface{}) Error {
+	if nil == inputs {
+		e.input = map[string]interface{}{}
+	} else {
+		e.input = inputs
 	}
 
-	if len(keyValues)%2 != 0 {
-		e.input = keyValues
-		return e
-	}
-
-	fields := map[string]interface{}{}
-	for i := 0; i*2 < len(keyValues); i++ {
-		key, ok := keyValues[i*2].(string)
-		if !ok {
-			fields[fmt.Sprintf("errf_%d", i)] = keyValues[i*2+1]
-			continue
-		}
-
-		fields[key] = keyValues[i*2+1]
-	}
-
-	e.input = fields
 	return e
 }
