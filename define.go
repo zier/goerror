@@ -18,6 +18,22 @@ func DefineUnauthorized(code, msg string) *GoError {
 	}
 }
 
+func DefineUnprocessed(code, msg string) *GoError {
+	return &GoError{
+		Status: http.StatusUnprocessableEntity,
+		Code:   code,
+		Msg:    msg,
+	}
+}
+
+func DefineContentTooLarge(code, msg string) *GoError {
+	return &GoError{
+		Status: http.StatusRequestEntityTooLarge,
+		Code:   code,
+		Msg:    msg,
+	}
+}
+
 func DefineForbidden(code, msg string) *GoError {
 	return &GoError{
 		Status: http.StatusForbidden,
