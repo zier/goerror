@@ -92,7 +92,7 @@ func TestRespValidateError(t *testing.T) {
 	}
 
 	emptyStruct := struct {
-		UserID string `json:"userId"`
+		UserID string `json:"userID"`
 		Name   string `json:"name" binding:"required"`
 		Age    int    `json:"age" form:"age" binding:"gte=0,lte=130"`
 	}{}
