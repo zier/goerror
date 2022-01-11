@@ -91,7 +91,7 @@ func TestRespValidateError(t *testing.T) {
 
 		errors := validate.Struct(emptyStruct)
 		if errors != nil {
-			RespValidateError(c, errors)
+			return RespValidateError(c, errors)
 		}
 
 		return nil
@@ -99,7 +99,7 @@ func TestRespValidateError(t *testing.T) {
 
 	res, err := app.Test(req)
 	require.NoError(t, err)
-	// require.Equal(t, http.StatusBadRequest, res.StatusCode)
+	require.Equal(t, http.StatusBadRequest, res.StatusCode)
 
 	defer res.Body.Close()
 	data, err := ioutil.ReadAll(res.Body)

@@ -23,7 +23,7 @@ func RespWithError(c *fiber.Ctx, err error) error {
 	})
 }
 
-func RespValidateError(c *fiber.Ctx, err error) {
+func RespValidateError(c *fiber.Ctx, err error) error {
 	errValidates := make([]*goerror.Reason, 0)
 	if errs, ok := err.(validator.ValidationErrors); ok {
 		for _, errValidate := range errs {
@@ -35,7 +35,7 @@ func RespValidateError(c *fiber.Ctx, err error) {
 		}
 	}
 
-	c.Status(http.StatusBadRequest).JSON(fiber.Map{
+	return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 		"type":    "InvalidRequest",
 		"message": "invalid request",
 		"errors":  errValidates,
