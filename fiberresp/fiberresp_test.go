@@ -32,7 +32,7 @@ func TestRespWithError(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	assert.NoError(t, err)
 
-	assert.Equal(t, `{"errors":[],"message":"Username is required","type":"InvalidRequest"}`, string(data))
+	assert.Equal(t, `{"errorCause":"","errors":[],"message":"Username is required","type":"InvalidRequest"}`, string(data))
 }
 
 func newRequestWithBody(t *testing.T, jsonData interface{}) *http.Request {
@@ -108,7 +108,7 @@ func TestRespValidateError(t *testing.T) {
 }
 
 func TestRespWithErrorReasons(t *testing.T) {
-	expectErrorJson := `{"errors":[{"fieldName":"username","reason":"username already exist"},{"fieldName":"phone","reason":"phone number already exist","value":"0598881111"}],"message":"user is already exist","type":"UserExist"}`
+	expectErrorJson := `{"errorCause":"","errors":[{"fieldName":"username","reason":"username already exist"},{"fieldName":"phone","reason":"phone number already exist","value":"0598881111"}],"message":"user is already exist","type":"UserExist"}`
 
 	req := newRequestWithBody(t, nil)
 
