@@ -11,9 +11,10 @@ import (
 func RespWithError(c *fiber.Ctx, err error) error {
 	if e, ok := err.(*goerror.GoError); ok {
 		return c.Status(e.Status).JSON(fiber.Map{
-			"type":    e.Code,
-			"message": e.Msg + e.ExtendMsg,
-			"errors":  e.GetReasons(),
+			"type":       e.Code,
+			"message":    e.Msg + e.ExtendMsg,
+			"errors":     e.GetReasons(),
+			"errorCause": e.Cause(),
 		})
 	}
 
